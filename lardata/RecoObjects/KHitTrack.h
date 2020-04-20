@@ -4,7 +4,7 @@
 ///
 /// \brief  Basic Kalman filter track class, plus one measurement on same surface.
 ///
-/// \author H. Greenlee 
+/// \author H. Greenlee
 ///
 /// This class inherits the following attributes from KFitTrack.
 ///
@@ -25,7 +25,7 @@
 #ifndef KHITSTRACK_H
 #define KHITSTRACK_H
 
-#include <vector>
+#include <memory>
 #include "lardata/RecoObjects/KFitTrack.h"
 #include "lardata/RecoObjects/KHitBase.h"
 

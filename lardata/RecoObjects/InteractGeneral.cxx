@@ -11,7 +11,6 @@
 #include <cmath>
 #include "lardata/RecoObjects/InteractGeneral.h"
 #include "lardata/RecoObjects/SurfXYZPlane.h"
-#include "cetlib_except/exception.h"
 
 namespace trkf {
 
@@ -69,7 +68,7 @@ namespace trkf {
 
     TrackMatrix prop_matrix;
     KTrack temp_trk = trk;
-    boost::optional<double> result = fProp.short_vec_prop(temp_trk, psurf, Propagator::UNKNOWN, 
+    boost::optional<double> result = fProp.short_vec_prop(temp_trk, psurf, Propagator::UNKNOWN,
 							  false, &prop_matrix);
 
     // Return failure if propagation did not succeed.

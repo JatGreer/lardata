@@ -7,7 +7,6 @@
 /// \author H. Greenlee
 ///
 ////////////////////////////////////////////////////////////////////////
-#include <stdint.h>
 
 #include "lardata/RecoObjects/KHitWireLine.h"
 #include "lardata/RecoObjects/SurfWireLine.h"
@@ -34,7 +33,7 @@ namespace trkf {
     fHit(hit)
   {
     // Get services.
-    const detinfo::DetectorProperties* detprop = art::ServiceHandle<detinfo::DetectorPropertiesService>()->provider();
+    const detinfo::DetectorProperties* detprop = art::ServiceHandle<detinfo::DetectorPropertiesService const>()->provider();
 
     // Extract wire id.
     geo::WireID wireid = hit->WireID();
@@ -99,7 +98,7 @@ namespace trkf {
   {
     // Get services.
 
-    art::ServiceHandle<geo::Geometry> geom;
+    art::ServiceHandle<geo::Geometry const> geom;
 
     // Get plane number.
 
@@ -130,7 +129,7 @@ namespace trkf {
 
     if(!getMeasSurface()->isEqual(*tre.getSurface()))
       throw cet::exception("KHitWireLine") << "Track surface not the same as measurement surface.\n";
- 
+
     // Prediction is the signed impact parameter (parameter 0).
 
     int size = tre.getVector().size();
@@ -144,7 +143,7 @@ namespace trkf {
 
     // Update prediction error to include contribution from track slope.
 
-    art::ServiceHandle<geo::Geometry> geom;
+    art::ServiceHandle<geo::Geometry const> geom;
     double pitch = geom->WirePitch();
     double phi = tre.getVector()(2);
     double cosphi = std::cos(phi);

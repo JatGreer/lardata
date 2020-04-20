@@ -1,25 +1,23 @@
 ////////////////////////////////////////////////////////////////////////
 /// \file  LArRawInputDriverJP250L.h
 /// \brief Source to convert JP250L files to LArSoft files
-/// 
+///
 /// \author  eito@post.kek.jp, brebel@fnal.gov
 ////////////////////////////////////////////////////////////////////////
 
-#include "fhiclcpp/ParameterSet.h"
-#include "art/Framework/Core/ProductRegistryHelper.h"
-#include "art/Framework/IO/Sources/SourceHelper.h"
-#include "art/Framework/Core/FileBlock.h"
-#include "art/Framework/Principal/RunPrincipal.h"
-#include "art/Framework/Principal/SubRunPrincipal.h"
-#include "art/Framework/Principal/EventPrincipal.h"
-#include "canvas/Persistency/Provenance/SubRunID.h"
-
-#include <fstream>
 #include <string>
-#include <vector>
 
-#include "TFile.h"
-#include "TTree.h"
+namespace art {
+  class EventPrincipal;
+  class FileBlock;
+  class ProductRegistryHelper;
+  class RunPrincipal;
+  class SourceHelper;
+  class SubRunPrincipal;
+}
+namespace fhicl { class ParameterSet; }
+
+class TTree;
 
 ///Conversion of binary data to root files
 namespace lris {
@@ -49,7 +47,7 @@ class lris::LArRawInputDriverJP250L {
 
   // --- data members:
   art::SourceHelper const& principalMaker_;
-  
+
   // added by E.Iwai
   TTree*          m_eventTree;   ///< TTree containing information from each trigger
   unsigned int    m_nEvent;      ///< number of triggers in the TTree
@@ -59,5 +57,5 @@ class lris::LArRawInputDriverJP250L {
   unsigned short  m_nChannels;   ///< number of channels in the detector
   unsigned short  m_nSamples;    ///< number of time samples per channel
   unsigned short* m_data;        ///< the ADC of each time sample for each channel
-  
+
 };  // LArRawInputDriverJP250L

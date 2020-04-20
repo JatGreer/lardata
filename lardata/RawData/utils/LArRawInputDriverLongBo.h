@@ -5,18 +5,20 @@
 /// \author  brebel@fnal.gov, soderber@fnal.gov
 ////////////////////////////////////////////////////////////////////////
 
-#include "fhiclcpp/ParameterSet.h"
-#include "art/Framework/Core/ProductRegistryHelper.h"
-#include "art/Framework/IO/Sources/SourceHelper.h"
-#include "art/Framework/Core/FileBlock.h"
-#include "art/Framework/Principal/RunPrincipal.h"
-#include "art/Framework/Principal/SubRunPrincipal.h"
-#include "art/Framework/Principal/EventPrincipal.h"
 #include "canvas/Persistency/Provenance/SubRunID.h"
 
-#include <fstream>
 #include <string>
 #include <vector>
+
+namespace art {
+  class EventPrincipal;
+  class FileBlock;
+  class ProductRegistryHelper;
+  class RunPrincipal;
+  class SourceHelper;
+  class SubRunPrincipal;
+}
+namespace fhicl { class ParameterSet; }
 
 ///Conversion of binary data to root files
 namespace lris {
@@ -51,5 +53,5 @@ class lris::LArRawInputDriverLongBo {
   stringvec_t                    inputfiles_;
   stringvec_t::const_iterator    nextfile_;
   stringvec_t::const_iterator    filesdone_;
-  art::SubRunID                  currentSubRunID_; 
+  art::SubRunID                  currentSubRunID_;
 };  // LArRawInputDriverLongBo

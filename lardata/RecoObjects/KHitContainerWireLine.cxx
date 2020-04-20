@@ -8,7 +8,6 @@
 ///
 ////////////////////////////////////////////////////////////////////////
 
-#include <map>
 
 #include "lardata/RecoObjects/KHitContainerWireLine.h"
 
@@ -42,7 +41,7 @@ namespace trkf {
   {
     // Get services.
 
-    art::ServiceHandle<geo::Geometry> geom;
+    art::ServiceHandle<geo::Geometry const> geom;
 
     // Loop over hits.
 
@@ -52,7 +51,7 @@ namespace trkf {
 
       // Extract the wireid from the Hit.
       geo::WireID hitWireID = hit.WireID();
-		
+
       uint32_t channel = hit.Channel();
 
       // Choose plane.

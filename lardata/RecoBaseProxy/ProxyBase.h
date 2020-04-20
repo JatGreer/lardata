@@ -3,9 +3,9 @@
  * @brief  Base utilities for the implementation of data product facades.
  * @author Gianluca Petrillo (petrillo@fnal.gov)
  * @date   July 27, 2017
- * 
+ *
  * This library is header-only.
- * 
+ *
  * This header is a catch-all of the proxy facilities.
  * The headers can also be included singularly as needed.
  */
@@ -19,7 +19,5 @@
 #include "lardata/RecoBaseProxy/ProxyBase/withParallelData.h"
 #include "lardata/RecoBaseProxy/ProxyBase/withZeroOrOne.h"
 #include "lardata/RecoBaseProxy/ProxyBase/getCollection.h"
-
-
 
 #endif // LARDATA_RECOBASEPROXY_PROXYBASE_H

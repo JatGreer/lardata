@@ -4,8 +4,7 @@
 #
 set(RawDataDumpers
   "DumpRawDigits"
-  "DumpOpDetWaveforms"
-  )
+  "DumpOpDetWaveforms")
 set(RecoBaseDumpers
   "DumpWires"
   "DumpHits"
@@ -16,47 +15,22 @@ set(RecoBaseDumpers
   "DumpSpacePoints"
   "DumpChargedSpacePoints"
   "DumpTracks"
-  "DumpVertices"
-  )
+  "DumpVertices")
 set(SimulationDumpers
   "DumpSimPhotonsLite"
+  "DumpSimEnergyDeposits"
   )
-set(MCDumpers
-  )
-
-string(REPLACE ";" "_module.cc;" DumperSources
-  "${RawDataDumpers};${RecoBaseDumpers};${SimulationDumpers};${MCDumpers}"
-  )
+set(MCDumper)
 
 
-art_make(
-  NO_PLUGINS
-  LIB_LIBRARIES
-    lardataobj_RecoBase
-    ${ROOT_BASIC_LIB_LIST}
-  MODULE_LIBRARIES
-    lardataobj_RecoBase
-    lardata_ArtDataHelper_Dumpers
-    art_Framework_Principal
-    canvas
-    ${MF_MESSAGELOGGER}
-    
-    cetlib cetlib_except
-    ${ROOT_BASIC_LIB_LIST}
-  )
-
+art_make(NO_PLUGINS LIB_LIBRARIES lardataobj_RecoBase)
 
 foreach(Dumper IN LISTS RawDataDumpers)
   simple_plugin(${Dumper} "module"
       lardataobj_RawData
-      art_Framework_Principal
-      canvas
-      ${MF_MESSAGELOGGER}
-      
-      cetlib cetlib_except
-      ${ROOT_BASIC_LIB_LIST}
-    )
-endforeach(Dumper IN LISTS RawDataDumpers)
+      ${ART_FRAMEWORK_SERVICES_REGISTRY}
+      ${MF_MESSAGELOGGER})
+endforeach()
 
 
 foreach(Dumper IN LISTS RecoBaseDumpers)
@@ -64,40 +38,23 @@ foreach(Dumper IN LISTS RecoBaseDumpers)
       lardataobj_RecoBase
       lardata_ArtDataHelper_Dumpers
       lardata_RecoBaseProxy
-      art_Framework_Principal
-      canvas
-      ${MF_MESSAGELOGGER}
-      
-      cetlib cetlib_except
-      ${ROOT_BASIC_LIB_LIST}
-    )
-endforeach(Dumper IN LISTS RecoBaseDumpers)
+      ${MF_MESSAGELOGGER})
+endforeach()
 
 
 foreach(Dumper IN LISTS SimulationDumpers)
   simple_plugin(${Dumper} "module"
+      lardataalg_MCDumpers
       lardataobj_Simulation
-      art_Framework_Principal
-      canvas
       ${MF_MESSAGELOGGER}
-      
-      cetlib cetlib_except
-      ${ROOT_BASIC_LIB_LIST}
-    )
+      ROOT::GenVector
+      ROOT::Core)
 endforeach(Dumper IN LISTS SimulationDumpers)
 
 
 foreach(Dumper IN LISTS MCDumpers)
-  simple_plugin(${Dumper} "module"
-      lardataobj_MCBase
-      art_Framework_Principal
-      canvas
-      ${MF_MESSAGELOGGER}
-      
-      cetlib cetlib_except
-      ${ROOT_BASIC_LIB_LIST}
-    )
-endforeach(Dumper IN LISTS MCDumpers)
+  simple_plugin(${Dumper} "module" lardataobj_MCBase)
+endforeach()
 
 
 

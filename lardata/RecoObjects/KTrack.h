@@ -4,7 +4,7 @@
 ///
 /// \brief  Basic Kalman filter track class, without error.
 ///
-/// \author H. Greenlee 
+/// \author H. Greenlee
 ///
 /// This class include the following attributes.
 ///
@@ -22,7 +22,7 @@
 #ifndef KTRACK_H
 #define KTRACK_H
 
-#include <ostream>
+#include <iosfwd>
 #include <memory>
 #include "lardata/RecoObjects/KalmanLinearAlgebra.h"
 #include "lardata/RecoObjects/Surface.h"

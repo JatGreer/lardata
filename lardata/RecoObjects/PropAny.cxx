@@ -8,7 +8,6 @@
 ///
 ////////////////////////////////////////////////////////////////////////
 
-#include <cmath>
 #include "lardata/RecoObjects/PropAny.h"
 #include "lardata/RecoObjects/SurfYZLine.h"
 #include "lardata/RecoObjects/SurfYZPlane.h"
@@ -26,7 +25,7 @@ namespace trkf {
   /// doDedx - dE/dx enable flag.
   ///
   PropAny::PropAny(double tcut, bool doDedx) :
-    Propagator(tcut, doDedx, (tcut >= 0 ? 
+    Propagator(tcut, doDedx, (tcut >= 0 ?
 			      std::shared_ptr<const Interactor>(new InteractPlane(tcut)) :
 			      std::shared_ptr<const Interactor>())),
     fPropYZLine(tcut, doDedx),
@@ -56,7 +55,7 @@ namespace trkf {
   ///
   boost::optional<double>
   PropAny::short_vec_prop(KTrack& trk,
-			  const std::shared_ptr<const Surface>& psurf, 
+			  const std::shared_ptr<const Surface>& psurf,
 			  Propagator::PropDirection dir,
 			  bool doDedx,
 			  TrackMatrix* prop_matrix,
@@ -95,7 +94,7 @@ namespace trkf {
   ///
   /// Propagation distance is always zero after successful propagation.
   ///
-  boost::optional<double> 
+  boost::optional<double>
   PropAny::origin_vec_prop(KTrack& trk,
 			   const std::shared_ptr<const Surface>& porient,
 			   TrackMatrix* prop_matrix) const

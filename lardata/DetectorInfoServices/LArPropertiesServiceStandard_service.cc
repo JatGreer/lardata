@@ -1,47 +1,22 @@
-////////////////////////////////////////////////////////////////////////
-//
-//  LArProperties_plugin
-//
-////////////////////////////////////////////////////////////////////////
-// Framework includes
-
-// C++ language includes
-#include <iostream>
-
-// LArSoft includes
 #include "lardata/DetectorInfoServices/LArPropertiesServiceStandard.h"
-//#include "SimpleTypesAndConstants/PhysicalConstants.h"
 
-// ROOT includes
-#include "TMath.h"
-
-// Framework includes
-#include "messagefacility/MessageLogger/MessageLogger.h"
-#include "cetlib_except/exception.h"
+//------------------------------------------------
+/// \todo these values should eventually come from a database
 //-----------------------------------------------
-detinfo::LArPropertiesServiceStandard::LArPropertiesServiceStandard(fhicl::ParameterSet const& pset, art::ActivityRegistry &reg)
+detinfo::LArPropertiesServiceStandard::LArPropertiesServiceStandard(Parameters const& config,
+                                                                    art::ActivityRegistry& reg)
+  : fProp{config.get_PSet()}
 {
-  fProp.reset(new detinfo::LArPropertiesStandard());
-
-  this->reconfigure(pset);
   reg.sPreBeginRun.watch(this, &LArPropertiesServiceStandard::preBeginRun);
 }
 
 //----------------------------------------------
-void detinfo::LArPropertiesServiceStandard::preBeginRun(const art::Run& run)
+void
+detinfo::LArPropertiesServiceStandard::preBeginRun(art::Run const& run)
 {
-  fProp->Update(run.id().run());
-}
-
-
-
-//------------------------------------------------
-/// \todo these values should eventually come from a database
-void detinfo::LArPropertiesServiceStandard::reconfigure(fhicl::ParameterSet const& pset)
-{
-  fProp->Configure(pset);  
-  return;
+  fProp.Update(run.run());
 }
 
 //------------------------------------------------
-DEFINE_ART_SERVICE_INTERFACE_IMPL(detinfo::LArPropertiesServiceStandard, detinfo::LArPropertiesService)
+DEFINE_ART_SERVICE_INTERFACE_IMPL(detinfo::LArPropertiesServiceStandard,
+                                  detinfo::LArPropertiesService)

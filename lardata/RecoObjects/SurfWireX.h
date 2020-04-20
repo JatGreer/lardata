@@ -4,7 +4,7 @@
 ///
 /// \brief  Planar surface defined by wire id and x-axis.
 ///
-/// \author H. Greenlee 
+/// \author H. Greenlee
 ///
 /// This class derives from SurfYZPlane.  This class does not add any
 /// new members, but has a constructor that allows construction from
@@ -15,8 +15,9 @@
 #ifndef SURFWIREX_H
 #define SURFWIREX_H
 
-#include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
 #include "lardata/RecoObjects/SurfYZPlane.h"
+
+namespace geo { struct WireID; }
 
 namespace trkf {
 

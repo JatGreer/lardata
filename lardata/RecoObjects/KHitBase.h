@@ -4,7 +4,7 @@
 ///
 /// \brief  Base class for Kalman filter measurement.
 ///
-/// \author H. Greenlee 
+/// \author H. Greenlee
 ///
 /// This class represents a general measurement on a surface.
 ///
@@ -49,12 +49,15 @@
 #ifndef KHITBASE_H
 #define KHITBASE_H
 
-#include <ostream>
+#include <iosfwd>
+#include <memory>
+
 #include "lardata/RecoObjects/Surface.h"
 #include "lardata/RecoObjects/KETrack.h"
-#include "lardata/RecoObjects/Propagator.h"
 
 namespace trkf {
+
+  class Propagator;
 
   class KHitBase
   {

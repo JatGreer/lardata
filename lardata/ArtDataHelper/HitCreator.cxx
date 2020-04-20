@@ -4,7 +4,7 @@
  * @date   December 19, 2014
  * @author petrillo@fnal.gov
  * @see    Hit.h HitCreator.h
- * 
+ *
  * ****************************************************************************/
 
 // declaration header
@@ -24,27 +24,26 @@
 
 // LArSoft libraries
 #include "larcore/Geometry/Geometry.h"
-// #include "RawData/RawDigit.h"
 #include "lardataobj/RecoBase/Wire.h"
 #include "lardataobj/RecoBase/Hit.h"
 #include "lardata/Utilities/MakeIndex.h"
 
 
 namespace {
-  
+
   /// Erases the content of an association
   template <typename Left, typename Right, typename Metadata>
   void ClearAssociations(art::Assns<Left, Right, Metadata>& assns) {
     art::Assns<Left, Right, Metadata> empty;
     assns.swap(empty);
   } // ClearAssociations()
-  
+
 } // local namespace
 
 
 /// Reconstruction base classes
 namespace recob {
-  
+
   //****************************************************************************
   //***  HitCreator
   //----------------------------------------------------------------------
@@ -91,6 +90,7 @@ namespace recob {
       local_index,
       goodness_of_fit,
       dof,
+<<<<<<< HEAD
       art::ServiceHandle<geo::Geometry>()->View(digits.Channel()),
       art::ServiceHandle<geo::Geometry>()->SignalType(digits.Channel()),
       wireID,
@@ -103,10 +103,15 @@ namespace recob {
       summedADC7,
       summedADC8,
       continues
+=======
+      art::ServiceHandle<geo::Geometry const>()->View(digits.Channel()),
+      art::ServiceHandle<geo::Geometry const>()->SignalType(digits.Channel()),
+      wireID
+>>>>>>> develop
       )
   {} // HitCreator::HitCreator(RawDigit)
-  
-  
+
+
   //----------------------------------------------------------------------
   HitCreator::HitCreator(
     recob::Wire const&   wire,
@@ -152,6 +157,7 @@ namespace recob {
       goodness_of_fit,
       dof,
       wire.View(),
+<<<<<<< HEAD
       art::ServiceHandle<geo::Geometry>()->SignalType(wire.Channel()),
       wireID,
       summedADC1,
@@ -163,10 +169,14 @@ namespace recob {
       summedADC7,
       summedADC8,
       continues
+=======
+      art::ServiceHandle<geo::Geometry const>()->SignalType(wire.Channel()),
+      wireID
+>>>>>>> develop
       )
   {} // HitCreator::HitCreator(Wire)
-  
-  
+
+
   //----------------------------------------------------------------------
   HitCreator::HitCreator(
     recob::Wire const&   wire,
@@ -209,8 +219,8 @@ namespace recob {
       continues
       )
   {} // HitCreator::HitCreator(Wire; no summed ADC)
-  
-  
+
+
   //----------------------------------------------------------------------
   HitCreator::HitCreator(
     recob::Wire const&        wire,
@@ -246,8 +256,8 @@ namespace recob {
       continues
       )
   {} // HitCreator::HitCreator(Wire; RoI)
-  
-  
+
+
   //----------------------------------------------------------------------
   HitCreator::HitCreator(
     recob::Wire const&        wire,
@@ -282,58 +292,104 @@ namespace recob {
       summedADC5,summedADC6,summedADC7,summedADC8, continues
       )
   {} // HitCreator::HitCreator(Wire; RoI index)
-  
-  
+
+
   HitCreator::HitCreator(recob::Hit const& from): hit(from) {}
-  
-  
+
+
   HitCreator::HitCreator(recob::Hit const& from, geo::WireID const& wireID):
     hit(from)
   {
     hit.fWireID = wireID;
   } // HitCreator::HitCreator(new wire ID)
-  
-  
-  
+
+
+
   //****************************************************************************
   //***  HitAndAssociationsWriterBase
   //----------------------------------------------------------------------
+  HitAndAssociationsWriterBase::HitAndAssociationsWriterBase(
+    art::Event& event,
+    std::string instance_name, bool doWireAssns, bool doRawDigitAssns
+    )
+    : prod_instance(instance_name)
+    , hits()
+    , WireAssns
+      (doWireAssns? new art::Assns<recob::Wire, recob::Hit>: nullptr)
+    , RawDigitAssns
+      (doRawDigitAssns? new art::Assns<raw::RawDigit, recob::Hit>: nullptr)
+    , event(&event)
+    , hitPtrMaker(*(this->event), prod_instance)
+  {} // HitAndAssociationsWriterBase::HitAndAssociationsWriterBase()
+
+  //------------------------------------------------------------------------------
+  void HitAndAssociationsWriterBase::declare_products(
+    art::ProducesCollector& collector,
+    std::string instance_name /* = "" */,
+    bool doWireAssns /* = true */, bool doRawDigitAssns /* = true */
+  ) {
+    collector.produces<std::vector<recob::Hit>>(instance_name);
+
+    // declare the other products we are creating (if any)
+    if (doWireAssns) {
+      collector.produces<art::Assns<recob::Wire, recob::Hit>>
+        (instance_name);
+    }
+    if (doRawDigitAssns) {
+      collector.produces<art::Assns<raw::RawDigit, recob::Hit>>
+        (instance_name);
+    }
+  } // HitAndAssociationsWriterBase::declare_products()
+
+  //------------------------------------------------------------------------------
   void HitAndAssociationsWriterBase::put_into() {
     assert(event);
     if (hits) event->put(std::move(hits), prod_instance);
     if (WireAssns) event->put(std::move(WireAssns), prod_instance);
     if (RawDigitAssns) event->put(std::move(RawDigitAssns), prod_instance);
   } // HitAndAssociationsWriterBase::put_into()
-  
-  
+
+
   //****************************************************************************
   //***  HitCollectionCreator
+  //----------------------------------------------------------------------
+  HitCollectionCreator::HitCollectionCreator(
+    art::Event& event,
+    std::string instance_name /* = "" */,
+    bool doWireAssns /* = true */, bool doRawDigitAssns /* = true */
+    )
+    : HitAndAssociationsWriterBase
+      (event, instance_name, doWireAssns, doRawDigitAssns)
+  {
+    hits.reset(new std::vector<recob::Hit>);
+  } // HitCollectionCreator::HitCollectionCreator()
+
   //----------------------------------------------------------------------
   void HitCollectionCreator::emplace_back(
     recob::Hit&& hit,
     art::Ptr<recob::Wire> const& wire, art::Ptr<raw::RawDigit> const& digits
   ) {
-    
+
     // add the hit to the collection
     hits->emplace_back(std::move(hit));
-    
+
     CreateAssociationsToLastHit(wire, digits);
   } // HitCollectionCreator::emplace_back(Hit&&)
-  
-  
+
+
   //----------------------------------------------------------------------
   void HitCollectionCreator::emplace_back(
     recob::Hit const& hit,
     art::Ptr<recob::Wire> const& wire, art::Ptr<raw::RawDigit> const& digits
   ) {
-    
+
     // add the hit to the collection
     hits->push_back(hit);
-    
+
     CreateAssociationsToLastHit(wire, digits);
   } // HitCollectionCreator::emplace_back(Hit)
-  
-  
+
+
   //----------------------------------------------------------------------
   void HitCollectionCreator::put_into() {
     if (!hits) {
@@ -343,72 +399,111 @@ namespace recob {
     }
     HitAndAssociationsWriterBase::put_into();
   } // HitCollectionCreator::put_into()
-  
-  
+
+
   //----------------------------------------------------------------------
   void HitCollectionCreator::CreateAssociationsToLastHit(
     art::Ptr<recob::Wire> const& wire, art::Ptr<raw::RawDigit> const& digits
   ) {
     // if no association is required, we are done
     if (!WireAssns && !RawDigitAssns) return;
-    
+
     // art pointer to the hit we just created
     HitPtr_t hit_ptr(CreatePtrToLastHit());
-    
+
     // association with wires
     if (WireAssns && wire.isNonnull())
       WireAssns->addSingle(wire, hit_ptr); // if it fails, it throws
-    
+
     // association with wires
     if (RawDigitAssns && digits.isNonnull())
       RawDigitAssns->addSingle(digits, hit_ptr); // if it fails, it throws
-    
+
   } // HitCollectionCreator::CreateAssociationsToLastHit()
-  
-  
+
+
   //****************************************************************************
   //***  HitCollectionAssociator
+  //----------------------------------------------------------------------
+  HitCollectionAssociator::HitCollectionAssociator(
+    art::Event& event,
+    std::string instance_name,
+    art::InputTag const& WireModuleLabel,
+    art::InputTag const& RawDigitModuleLabel
+  )
+    : HitAndAssociationsWriterBase(
+        event, instance_name,
+        WireModuleLabel != "", RawDigitModuleLabel != ""
+        )
+    , wires_label(WireModuleLabel)
+    , digits_label(RawDigitModuleLabel)
+  {
+    hits.reset(new std::vector<recob::Hit>);
+  } // HitCollectionAssociator::HitCollectionAssociator()
+
+  //----------------------------------------------------------------------
+  recob::HitCollectionAssociator::HitCollectionAssociator(
+    art::Event& event,
+    std::string instance_name,
+    art::InputTag const& WireModuleLabel,
+    bool doRawDigitAssns /* = false */
+  )
+    : HitAndAssociationsWriterBase(
+        event, instance_name,
+        WireModuleLabel != "", doRawDigitAssns
+        )
+    , wires_label(WireModuleLabel)
+    , digits_label()
+  {
+    if (RawDigitAssns && !WireAssns) {
+      throw art::Exception(art::errors::LogicError)
+        << "HitCollectionAssociator can't create hit <--> raw digit"
+        " associations through wires, without wires!\n";
+    }
+    hits.reset(new std::vector<recob::Hit>);
+  } // HitCollectionAssociator::HitCollectionAssociator()
+
   //----------------------------------------------------------------------
   void HitCollectionAssociator::use_hits
     (std::unique_ptr<std::vector<recob::Hit>>&& srchits)
   {
     hits = std::move(srchits);
   } // HitCollectionAssociator::use_hits()
-  
-  
+
+
   //----------------------------------------------------------------------
   void HitCollectionAssociator::put_into() {
     prepare_associations();
     HitAndAssociationsWriterBase::put_into();
   } // HitCollectionAssociator::put_into()
-  
-  
+
+
   //----------------------------------------------------------------------
   void HitCollectionAssociator::prepare_associations
     (std::vector<recob::Hit> const& srchits)
   {
     if (!RawDigitAssns && !WireAssns) return; // no associations needed
     assert(event);
-    
+
     // we make the associations anew
     if (RawDigitAssns) ClearAssociations(*RawDigitAssns);
     if (WireAssns)     ClearAssociations(*WireAssns);
-    
+
     // the following is true is we want associations with digits
     // but we don't know where digits are; in that case, we try to use wires
     const bool bUseWiresForDigits = RawDigitAssns && (digits_label == "");
-    
+
     if (WireAssns || bUseWiresForDigits) {
       // do we use wires for digit associations too?
-      
+
       // get the wire collection
       art::ValidHandle<std::vector<recob::Wire>> hWires
         = event->getValidHandle<std::vector<recob::Wire>>(wires_label);
-      
+
       // fill a map of wire index vs. channel number
       std::vector<size_t> WireMap
         = util::MakeIndex(*hWires, std::mem_fn(&recob::Wire::Channel));
-      
+
       // use raw rigit - wire association, assuming they have been produced
       // by the same producer as the wire and with the same instance name;
       // we don't check whether the data product is found, but the following
@@ -419,13 +514,13 @@ namespace recob {
         WireToDigit.reset
           (new art::FindOneP<raw::RawDigit>(hWires, *event, wires_label));
       }
-      
+
       // add associations, hit by hit:
       for (size_t iHit = 0; iHit < srchits.size(); ++iHit) {
-        
+
         // find the channel
         size_t iChannel = size_t(srchits[iHit].Channel()); // forcibly converted
-        
+
         // find the wire associated to that channel
         size_t iWire = std::numeric_limits<size_t>::max();
         if (iChannel < WireMap.size()) iWire = WireMap[iChannel];
@@ -434,13 +529,13 @@ namespace recob {
             << "No wire associated to channel #" << iChannel << " whence hit #"
             << iHit << " comes!\n";
         } // if no channel
-        
+
         // make the association with wires
         if (WireAssns) {
           art::Ptr<recob::Wire> wire(hWires, iWire);
           WireAssns->addSingle(wire, CreatePtr(iHit));
         }
-        
+
         if (bUseWiresForDigits) {
           // find the digit associated to that channel
           art::Ptr<raw::RawDigit> const& digit = WireToDigit->at(iWire);
@@ -449,29 +544,29 @@ namespace recob {
               << "No raw digit associated to channel #" << iChannel
               << " whence hit #" << iHit << " comes!\n";
           } // if no channel
-          
+
           // make the association
           RawDigitAssns->addSingle(digit, CreatePtr(iHit));
         } // if create digit associations through wires
       } // for hit
-      
+
     } // if wire associations
-    
+
     if (RawDigitAssns && !bUseWiresForDigits) {
       // get the digit collection
       art::ValidHandle<std::vector<raw::RawDigit>> hDigits
         = event->getValidHandle<std::vector<raw::RawDigit>>(digits_label);
-      
+
       // fill a map of wire index vs. channel number
       std::vector<size_t> DigitMap
         = util::MakeIndex(*hDigits, std::mem_fn(&raw::RawDigit::Channel));
-      
+
       // add associations, hit by hit:
       for (size_t iHit = 0; iHit < srchits.size(); ++iHit) {
-        
+
         // find the channel
         size_t iChannel = size_t(srchits[iHit].Channel()); // forcibly converted
-        
+
         // find the digit associated to that channel
         size_t iDigit = std::numeric_limits<size_t>::max();
         if (iChannel < DigitMap.size()) iDigit = DigitMap[iChannel];
@@ -480,54 +575,67 @@ namespace recob {
             << "No raw digit associated to channel #" << iChannel
             << " whence hit #" << iHit << " comes!\n";
         } // if no channel
-        
+
         // make the association
         art::Ptr<raw::RawDigit> digit(hDigits, iDigit);
         RawDigitAssns->addSingle(digit, CreatePtr(iHit));
-        
+
       } // for hit
     } // if we have rawdigit label
-    
+
   } // HitCollectionAssociator::put_into()
-  
-  
+
   //****************************************************************************
   //***  HitRefinerAssociator
+  //----------------------------------------------------------------------
+  HitRefinerAssociator::HitRefinerAssociator(
+    art::Event& event,
+    art::InputTag const& HitModuleLabel,
+    std::string instance_name /* = "" */,
+    bool doWireAssns /* = true */, bool doRawDigitAssns /* = true */
+  )
+    : HitAndAssociationsWriterBase
+        (event, instance_name, doWireAssns, doRawDigitAssns)
+    , hits_label(HitModuleLabel)
+  {
+    hits.reset(new std::vector<recob::Hit>);
+  } // HitRefinerAssociator::HitRefinerAssociator()
+
   //----------------------------------------------------------------------
   void HitRefinerAssociator::use_hits
     (std::unique_ptr<std::vector<recob::Hit>>&& srchits)
   {
     hits = std::move(srchits);
   } // HitRefinerAssociator::use_hits()
-  
-  
+
+
   //----------------------------------------------------------------------
   void HitRefinerAssociator::put_into() {
     prepare_associations();
     HitAndAssociationsWriterBase::put_into();
   } // HitRefinerAssociator::put_into()
-  
-  
+
+
   //----------------------------------------------------------------------
   void HitRefinerAssociator::prepare_associations
     (std::vector<recob::Hit> const& srchits)
   {
     if (!RawDigitAssns && !WireAssns) return; // no associations needed
     assert(event);
-    
+
     // we make the associations anew
     if (RawDigitAssns) ClearAssociations(*RawDigitAssns);
-    
+
     // read the hits; this is going to hurt performances...
     // no solution to that until there is a way to have a lazy read
     art::ValidHandle<std::vector<recob::Hit>> hHits
       = event->getValidHandle<std::vector<recob::Hit>>(hits_label);
-    
+
     // now get the associations
     if (WireAssns) {
       // we make the associations anew
       ClearAssociations(*WireAssns);
-      
+
       // find the associations between the hits and the wires
       art::FindOneP<recob::Wire> HitToWire(hHits, *event, hits_label);
       if (!HitToWire.isValid()) {
@@ -535,7 +643,7 @@ namespace recob {
           << "Can't find the associations between hits and wires produced by '"
           << hits_label << "'!\n";
       } // if no association
-      
+
       // fill a map of wire vs. channel number
       std::vector<art::Ptr<recob::Wire>> WireMap;
       for (size_t iAssn = 0; iAssn < HitToWire.size(); ++iAssn) {
@@ -546,25 +654,25 @@ namespace recob {
           WireMap.resize(std::max(channelID + 1, 2 * WireMap.size()), {});
         WireMap[channelID] = std::move(wire);
       } // for
-      
+
       // now go through all the hits...
       for (size_t iHit = 0; iHit < srchits.size(); ++iHit) {
         recob::Hit const& hit = srchits[iHit];
         size_t channelID = (size_t) hit.Channel();
-        
+
         // no association if there is no wire to associate with
         if ((channelID >= WireMap.size()) || !WireMap[channelID]) continue;
-        
+
         // create an association using the same wire pointer
         WireAssns->addSingle(WireMap[channelID], CreatePtr(iHit));
       } // for hits
     } // if wire associations
-    
+
     // now get the associations
     if (RawDigitAssns) {
       // we make the associations anew
       ClearAssociations(*RawDigitAssns);
-      
+
       // find the associations between the hits and the raw digits
       art::FindOneP<raw::RawDigit> HitToDigits(hHits, *event, hits_label);
       if (!HitToDigits.isValid()) {
@@ -572,7 +680,7 @@ namespace recob {
           << "Can't find the associations between hits and raw digits"
           << " produced by '" << hits_label << "'!\n";
       } // if no association
-      
+
       // fill a map of digits vs. channel number
       std::vector<art::Ptr<raw::RawDigit>> DigitMap;
       for (size_t iAssn = 0; iAssn < HitToDigits.size(); ++iAssn) {
@@ -583,22 +691,21 @@ namespace recob {
           DigitMap.resize(std::max(channelID + 1, 2 * DigitMap.size()), {});
         DigitMap[channelID] = std::move(digits);
       } // for
-      
+
       // now go through all the hits...
       for (size_t iHit = 0; iHit < srchits.size(); ++iHit) {
         recob::Hit const& hit = srchits[iHit];
         size_t channelID = (size_t) hit.Channel();
-        
+
         // no association if there is no digits to associate with
         if ((channelID >= DigitMap.size()) || !DigitMap[channelID]) continue;
-        
+
         // create an association using the same digits pointer
         RawDigitAssns->addSingle(DigitMap[channelID], CreatePtr(iHit));
       } // for hits
     } // if digit associations
-    
+
   } // HitRefinerAssociator::put_into()
-  
-  
-  //----------------------------------------------------------------------
+
+
 } // namespace recob

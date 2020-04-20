@@ -1,5 +1,5 @@
 //////////////////////////////////////////////////////////////////////////////
-// \version 
+// \version
 //
 // \brief Helper functions for MVAReader and MVAWriter wrappers
 //
@@ -374,4 +374,3 @@ std::array<float, N> anab::MVAWrapperBase::pAccumulate(
 //----------------------------------------------------------------------------
 
 #endif //ANAB_MVAWRAPPERBASE
-

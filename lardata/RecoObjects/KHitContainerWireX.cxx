@@ -44,7 +44,7 @@ namespace trkf {
   {
     // Get services.
 
-    art::ServiceHandle<geo::Geometry> geom;
+    art::ServiceHandle<geo::Geometry const> geom;
 
     // Make a temporary map from channel number to KHitGroup objects.
     // The KHitGroup pointers are borrowed references to KHitGroup
@@ -60,7 +60,7 @@ namespace trkf {
 
       // Extract the wire id from the Hit.
       geo::WireID hitWireID = hit.WireID();
-		
+
       uint32_t channel = hit.Channel();
 
       // Choose plane.

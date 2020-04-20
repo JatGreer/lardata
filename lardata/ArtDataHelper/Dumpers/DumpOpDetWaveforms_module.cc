@@ -6,7 +6,10 @@
  */
 
 // LArSoft includes
-#include "lardata/Utilities/StatCollector.h" // lar::util::MinMaxCollector
+#include "larcore/CoreUtils/ServiceUtil.h"
+#include "lardata/DetectorInfoServices/DetectorClocksService.h"
+#include "lardataalg/DetectorInfo/DetectorClocks.h"
+#include "lardataalg/Dumpers/RawData/OpDetWaveform.h"
 #include "lardataobj/RawData/OpDetWaveform.h"
 
 // art libraries
@@ -17,18 +20,15 @@
 #include "canvas/Utilities/InputTag.h"
 
 // support libraries
-#include "messagefacility/MessageLogger/MessageLogger.h"
 #include "fhiclcpp/types/Atom.h"
-#include "fhiclcpp/types/Name.h"
 #include "fhiclcpp/types/Comment.h"
+#include "fhiclcpp/types/Name.h"
+#include "messagefacility/MessageLogger/MessageLogger.h"
 
 // C//C++ standard libraries
+#include <algorithm> // std::sort()
 #include <string>
-#include <algorithm> // std::min()
-#include <ios> // std::fixed
-#include <iomanip> // std::setprecision(), std::setw()
-#include <utility> // std::forward(), std::swap()
-
+#include <vector>
 
 namespace detsim {
 
@@ -37,10 +37,10 @@ namespace detsim {
    *
    * This analyser prints the content of all the raw digits into the
    * LogInfo/LogVerbatim stream.
-   * 
+   *
    * Configuration parameters
    * -------------------------
-   * 
+   *
    * - *OpDetWaveformsTag* (string, default: `daq`): input tag of the
    *   raw::OpDetWaveform collection to be dumped
    * - *OutputCategory* (string, default: `DumpOpDetWaveforms`): the category
@@ -49,194 +49,207 @@ namespace detsim {
    *   will put this many of them for each line
    * - *Pedestal* (integer, default: `0`): ADC readings are written relative
    *   to this number
+   * - *TickLabel* (string, default: `"tick"`): a preamble to each line of the
+   *   dumped waveform digits, chosen among:
+   *     - `"tick"`: the tick number of the waveform is printed (starts at `0`)
+   *     - `"time"`: timestamp (&micro;s) of the first tick in the row
+   *     - `"none"`: no preamble written at all
    *
    */
-  class DumpOpDetWaveforms: public art::EDAnalyzer {
-      public:
-    
+  class DumpOpDetWaveforms : public art::EDAnalyzer {
+  public:
     struct Config {
-      
+
       using Name = fhicl::Name;
       using Comment = fhicl::Comment;
-      
-      fhicl::Atom<art::InputTag> OpDetWaveformsTag {
+
+      fhicl::Atom<art::InputTag> OpDetWaveformsTag{
         Name("OpDetWaveformsTag"),
-        Comment("input tag of the raw::OpDetWaveform collection to be dumped")
-        };
-      
-      fhicl::Atom<std::string> OutputCategory {
-        Name("OutputCategory"),
-        Comment("name of the category used for the output"),
-        "DumpOpDetWaveforms"
-        };
-      
-      fhicl::Atom<unsigned int> DigitsPerLine {
+        Comment("input tag of the raw::OpDetWaveform collection to be dumped")};
+
+      fhicl::Atom<std::string> OutputCategory{Name("OutputCategory"),
+                                              Comment("name of the category used for the output"),
+                                              "DumpOpDetWaveforms"};
+
+      fhicl::Atom<unsigned int> DigitsPerLine{
         Name("DigitsPerLine"),
-        Comment
-          ("the dump of ADC readings will put this many of them for each line"),
-        20U
-        };
-      
-      fhicl::Atom<raw::ADC_Count_t> Pedestal {
+        Comment("the dump of ADC readings will put this many of them for each line"),
+        20U};
+
+      fhicl::Atom<raw::ADC_Count_t> Pedestal{
         Name("Pedestal"),
         Comment("ADC readings are written relative to this number"),
-        0
-        };
-      
-    }; // struct Config
-    
-    using Parameters = art::EDAnalyzer::Table<Config>;
-    
-    
-    explicit DumpOpDetWaveforms(Parameters const& config);
-    
-    
-    /// Does the printing.
-    void analyze (const art::Event& evt);
-    
-    
-    /// Dumps the content of a single waveform into the specified output stream.
-    template <typename Stream>
-    void DumpWaveform(
-      Stream&& out, raw::OpDetWaveform const& waveform,
-      std::string indent, std::string indentFirst
-      ) const;
-    
-    template <typename Stream>
-    void DumpWaveform(
-      Stream&& out, raw::OpDetWaveform const& waveform, std::string indent = ""
-      ) const
-      { DumpWaveform(std::forward<Stream>(out), waveform, indent, indent); }
-    
-    
-      private:
-    
-    art::InputTag fOpDetWaveformsTag; ///< Input tag of data product to dump.
-    std::string fOutputCategory; ///< Category for `mf::LogInfo` output.
-    unsigned int fDigitsPerLine; ///< ADC readings per line in the output.
-    raw::ADC_Count_t fPedestal; ///< ADC pedestal (subtracted from readings).
-    
-  }; // class DumpOpDetWaveforms
-  
-} // namespace detsim
+        0};
 
+      fhicl::Atom<std::string> TickLabel{
+        Name("TickLabel"),
+        Comment("write an index in front of each digit dump line; choose between:"
+                " \"tick\" (waveform tick number)"
+                ", \"timestamp\" (electronics clock time in microseconds)"
+                ", \"none\" (no tick label)"),
+        "tick"};
+
+    }; // struct Config
+
+    using Parameters = art::EDAnalyzer::Table<Config>;
+
+    explicit DumpOpDetWaveforms(Parameters const& config);
+
+    /// Does the printing.
+    void analyze(const art::Event& evt);
+
+  private:
+    /// Base functor for printing time according to tick number.
+    struct TimestampLabelMaker : public dump::raw::OpDetWaveformDumper::TimeLabelMaker {
+      double tickDuration; // should this me `util::quantities::microsecond`?
+
+      /// Constructor: specify the duration of optical clock tick [&micro;s].
+      TimestampLabelMaker(double tickDuration) : tickDuration(tickDuration) {}
+
+      /// Returns the electronics time of the specified waveform tick.
+      virtual std::string
+      label(raw::OpDetWaveform const& waveform, unsigned int tick) const override
+      {
+        return std::to_string(waveform.TimeStamp() + tick * tickDuration);
+      }
+
+    }; // struct TimestampLabelMaker
+
+    art::InputTag fOpDetWaveformsTag; ///< Input tag of data product to dump.
+    std::string fOutputCategory;      ///< Category for `mf::LogInfo` output.
+    unsigned int fDigitsPerLine;      ///< ADC readings per line in the output.
+    raw::ADC_Count_t fPedestal;       ///< ADC pedestal (subtracted from readings).
+
+    /// The object used to print tick labels.
+    std::unique_ptr<dump::raw::OpDetWaveformDumper::TimeLabelMaker> fTimeLabel;
+
+    /// Returns pointers to all waveforms in a vector with channel as index.
+    static std::vector<std::vector<raw::OpDetWaveform const*>> groupByChannel(
+      std::vector<raw::OpDetWaveform> const& waveforms);
+
+    /// Sorts all the waveforms in the vector by growing timestamp.
+    static void sortByTimestamp(std::vector<raw::OpDetWaveform const*>& waveforms);
+
+  }; // class DumpOpDetWaveforms
+
+} // namespace detsim
 
 namespace detsim {
 
   //-------------------------------------------------
   DumpOpDetWaveforms::DumpOpDetWaveforms(Parameters const& config)
-    : EDAnalyzer         (config)
-    , fOpDetWaveformsTag (config().OpDetWaveformsTag())
-    , fOutputCategory    (config().OutputCategory())
-    , fDigitsPerLine     (config().DigitsPerLine())
-    , fPedestal          (config().Pedestal())
-    {}
+    : EDAnalyzer(config)
+    , fOpDetWaveformsTag(config().OpDetWaveformsTag())
+    , fOutputCategory(config().OutputCategory())
+    , fDigitsPerLine(config().DigitsPerLine())
+    , fPedestal(config().Pedestal())
+  {
+    std::string const tickLabelStr = config().TickLabel();
+    if (tickLabelStr == "none") {
+      fTimeLabel.reset(); // not very useful, but let's be explicit
+    }
+    else if (tickLabelStr == "tick") {
+      fTimeLabel = std::make_unique<dump::raw::OpDetWaveformDumper::TickLabelMaker>();
+    }
+    else if (tickLabelStr == "time") {
+      auto const* detClocks = lar::providerFrom<detinfo::DetectorClocksService>();
+      fTimeLabel = std::make_unique<TimestampLabelMaker>(detClocks->OpticalClock().TickPeriod());
+    }
+    else {
+      throw art::Exception(art::errors::Configuration)
+        << "Invalid choice '" << tickLabelStr << "' for time label.\n";
+    }
 
+  } // DumpOpDetWaveforms::DumpOpDetWaveforms()
 
   //-------------------------------------------------
-  void DumpOpDetWaveforms::analyze(const art::Event& event) {
-    
-    // fetch the data to be dumped on screen
-    auto Waveforms =
-      event.getValidHandle<std::vector<raw::OpDetWaveform>>(fOpDetWaveformsTag);
-    
-    mf::LogVerbatim(fOutputCategory)
-      << "The event " << event.id() << " contains data for "
-      << Waveforms->size() << " optical detector channels";
-    if (fPedestal != 0) {
-      mf::LogVerbatim(fOutputCategory) << "A pedestal of " << fPedestal
-        << " counts will be subtracted from all ADC readings.";
-    } // if pedestal
-    
-    for (raw::OpDetWaveform const& waveform: *Waveforms) {
-      
-      DumpWaveform(mf::LogVerbatim(fOutputCategory), waveform, "  ");
-      
-    } // for waveforms
-    
-  } // DumpOpDetWaveforms::analyze()
-  
-  
-  //----------------------------------------------------------------------------
-  template <typename Stream>
-  void DumpOpDetWaveforms::DumpWaveform(
-    Stream&& out, raw::OpDetWaveform const& waveform,
-    std::string indent, std::string indentFirst
-    ) const
+  void
+  DumpOpDetWaveforms::analyze(const art::Event& event)
   {
-    auto const& data = waveform;
-    using Count_t = raw::ADC_Count_t;
-    
-    // print a header for the raw digits
-    out << indentFirst
-      << "on channel #" << waveform.ChannelNumber() << " (time stamp: "
-      << waveform.TimeStamp() << "): " << data.size() << " time ticks";
-    
-    // print the content of the channel
-    if (fDigitsPerLine == 0) return;
-    
-    std::vector<Count_t> DigitBuffer(fDigitsPerLine), LastBuffer;
-    
-    unsigned int repeat_count = 0; // additional lines like the last one
-    unsigned int index = 0;
-    
-    lar::util::MinMaxCollector<Count_t> Extrema;
-    out << "\n" << indent
-      << "  content of the channel (" << fDigitsPerLine << " ticks per line):";
-    auto iTick = data.cbegin(), tend = data.cend(); // const iterators
-    while (iTick != tend) {
-      // the next line will show at most fDigitsPerLine ticks
-      unsigned int line_size
-        = std::min(fDigitsPerLine, (unsigned int) data.size() - index);
-      if (line_size == 0) break; // no more ticks
-      
-      // fill the new buffer (iTick will move forward)
-      DigitBuffer.resize(line_size);
-      auto iBuf = DigitBuffer.begin(), bend = DigitBuffer.end();
-      while ((iBuf != bend) && (iTick != tend))
-        Extrema.add(*(iBuf++) = *(iTick++) - fPedestal);
-      index += line_size;
-      
-      // if the new buffer is the same as the old one, just mark it
-      if (DigitBuffer == LastBuffer) {
-        repeat_count += 1;
-        continue;
+
+    // fetch the data to be dumped on screen
+    auto Waveforms = event.getValidHandle<std::vector<raw::OpDetWaveform>>(fOpDetWaveformsTag);
+
+    dump::raw::OpDetWaveformDumper dump(fPedestal, fDigitsPerLine);
+    dump.setIndent("    ");
+    dump.setTimeLabelMaker(fTimeLabel.get());
+
+    mf::LogVerbatim(fOutputCategory) << "The event " << event.id() << " contains data for "
+                                     << Waveforms->size() << " optical detector channels";
+    if (fPedestal != 0) {
+      mf::LogVerbatim(fOutputCategory)
+        << "A pedestal of " << fPedestal << " counts will be subtracted from all ADC readings.";
+    } // if pedestal
+
+    auto groupedWaveforms = groupByChannel(*Waveforms);
+
+    for (auto& channelWaveforms : groupedWaveforms) {
+      if (channelWaveforms.empty()) continue;
+
+      sortByTimestamp(channelWaveforms);
+      auto const channel = channelWaveforms.front()->ChannelNumber();
+
+      mf::LogVerbatim(fOutputCategory) << "  optical detector channel #" << channel << " has "
+                                       << channelWaveforms.size() << " waveforms:";
+
+      for (raw::OpDetWaveform const* pWaveform : channelWaveforms) {
+        mf::LogVerbatim log(fOutputCategory);
+        dump(log, *pWaveform);
+      } // for waveforms on channel
+
+    } // for all channels
+
+  } // DumpOpDetWaveforms::analyze()
+
+  //----------------------------------------------------------------------------
+  std::vector<std::vector<raw::OpDetWaveform const*>>
+  DumpOpDetWaveforms::groupByChannel(std::vector<raw::OpDetWaveform> const& waveforms)
+  {
+    std::vector<std::vector<raw::OpDetWaveform const*>> groups;
+    for (auto const& waveform : waveforms) {
+      auto const channel = waveform.ChannelNumber();
+      if (groups.size() <= channel) groups.resize(channel + 1);
+      groups[channel].push_back(&waveform);
+    } // for
+    return groups;
+  } // DumpOpDetWaveforms::groupByChannel()
+
+  //----------------------------------------------------------------------------
+  void
+  DumpOpDetWaveforms::sortByTimestamp(std::vector<raw::OpDetWaveform const*>& waveforms)
+  {
+
+    struct ChannelSorter {
+
+      static bool
+      sort(raw::OpDetWaveform const& a, raw::OpDetWaveform const& b)
+      {
+        if (a.ChannelNumber() < b.ChannelNumber()) return true;
+        if (a.ChannelNumber() > b.ChannelNumber()) return false;
+
+        return (a.TimeStamp() < b.TimeStamp());
       }
-      
-      // if there are previous repeats, write that on screen
-      // before the new, different line
-      if (repeat_count > 0) {
-        out << "\n" << indent
-          << "  [ ... repeated " << repeat_count << " more times ]";
-        repeat_count = 0;
+
+      bool
+      operator()(raw::OpDetWaveform const& a, raw::OpDetWaveform const& b) const
+      {
+        return sort(a, b);
       }
-      
-      // dump the new line of ticks
-      out << "\n" << indent << " ";
-      for (auto digit: DigitBuffer)
-        out << " " << std::setw(4) << digit;
-      
-      // quick way to assign DigitBuffer to LastBuffer
-      // (we don't care we lose the former)
-      std::swap(LastBuffer, DigitBuffer);
-      
-    } // while
-    if (repeat_count > 0) {
-      out << "\n" << indent
-        << "  [ ... repeated " << repeat_count << " more times to the end]";
-    }
-    if (Extrema.min() != Extrema.max()) {
-      out << "\n" << indent
-        << "  range of " << data.size()
-        << " samples: [" << Extrema.min() << ";" << Extrema.max() << "]";
-    }
-  
-  } // DumpOpDetWaveforms::DumpWaveform()
-  
-  
+
+      bool
+      operator()(raw::OpDetWaveform const* a, raw::OpDetWaveform const* b) const
+      {
+        return sort(*a, *b);
+      }
+
+    }; // struct ChannelSorter
+    std::sort(waveforms.begin(), waveforms.end(), ChannelSorter());
+
+  } // DumpOpDetWaveforms::sortByTimestamp()
+
   //----------------------------------------------------------------------------
   DEFINE_ART_MODULE(DumpOpDetWaveforms)
 
   //----------------------------------------------------------------------------
-  
+
 } // namespace detsim

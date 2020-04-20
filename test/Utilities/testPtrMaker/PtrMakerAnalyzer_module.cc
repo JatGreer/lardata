@@ -11,19 +11,12 @@
 #include "art/Framework/Core/ModuleMacros.h"
 #include "art/Framework/Principal/Event.h"
 #include "art/Framework/Principal/Handle.h"
-#include "art/Framework/Principal/Run.h"
-#include "art/Framework/Principal/SubRun.h"
-#include "canvas/Utilities/InputTag.h"
 #include "fhiclcpp/ParameterSet.h"
-#include "messagefacility/MessageLogger/MessageLogger.h"
-
-class PtrMakerAnalyzer;
-
 
 class PtrMakerAnalyzer : public art::EDAnalyzer {
 public:
   typedef art::PtrVector<int> intptrvector_t;
- 
+
   explicit PtrMakerAnalyzer(fhicl::ParameterSet const & p);
   // The compiler-generated destructor is fine for non-base
   // classes without bare pointers or other resource use.
@@ -47,7 +40,7 @@ private:
 PtrMakerAnalyzer::PtrMakerAnalyzer(fhicl::ParameterSet const & p)
   : EDAnalyzer(p)
   , fInputLabel(p.get<std::string>("input_label"))
-  , nvalues    (p.get<int> ("nvalues")) 
+  , nvalues    (p.get<int> ("nvalues"))
 {}
 
 void PtrMakerAnalyzer::analyze(art::Event const & e)

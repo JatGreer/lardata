@@ -11,19 +11,14 @@
 #include "art/Framework/Core/ModuleMacros.h"
 #include "art/Framework/Principal/Event.h"
 #include "art/Framework/Principal/Handle.h"
-#include "art/Framework/Principal/Run.h"
-#include "art/Framework/Principal/SubRun.h"
-#include "canvas/Utilities/InputTag.h"
 #include "canvas/Persistency/Common/Ptr.h"
 #include "canvas/Persistency/Common/PtrVector.h"
 #include "fhiclcpp/ParameterSet.h"
-#include "messagefacility/MessageLogger/MessageLogger.h"
 
 #include "art/Persistency/Common/PtrMaker.h"
 
 #include <iostream>
 #include <memory>
-#include <vector>
 
 namespace lartest {
   class PtrMakerProducer;
@@ -51,7 +46,7 @@ public:
   void produce(art::Event & e) override;
 
 private:
-  
+
   // Declare member data here.
   std::string fInputLabel;
 
@@ -59,7 +54,7 @@ private:
 
 
 PtrMakerProducer::PtrMakerProducer(fhicl::ParameterSet const & p)
-: fInputLabel( p.get<std::string>("input_label") )
+  : EDProducer{p}, fInputLabel( p.get<std::string>("input_label") )
   {
     produces<intPtrvector_t>();
   }

@@ -6,28 +6,23 @@
 //  jpaley@fnal.gov
 //
 ////////////////////////////////////////////////////////////////////////
+
 #ifndef LARPROPERTIESSERVICE_H
 #define LARPROPERTIESSERVICE_H
 
-#include "fhiclcpp/ParameterSet.h"
 #include "art/Framework/Services/Registry/ServiceMacros.h"
 #include "lardataalg/DetectorInfo/LArProperties.h"
-#include "larcore/CoreUtils/ServiceUtil.h"
 
-///General LArSoft Utilities
-namespace detinfo{
+namespace detinfo {
   class LArPropertiesService {
+  public:
+    using provider_type = detinfo::LArProperties;
 
-    public:
-    typedef detinfo::LArProperties provider_type;
-
-    public:
-      virtual ~LArPropertiesService() = default;
-      
-      virtual void   reconfigure(fhicl::ParameterSet const& pset) = 0;
-      virtual const  detinfo::LArProperties* provider() const = 0;
-            
-    }; // class LArPropertiesService
+    virtual ~LArPropertiesService() = default;
+    virtual provider_type const* provider() const = 0;
+  };
 } //namespace detinfo
-DECLARE_ART_SERVICE_INTERFACE(detinfo::LArPropertiesService, LEGACY)
+
+DECLARE_ART_SERVICE_INTERFACE(detinfo::LArPropertiesService, SHARED)
+
 #endif // LARPROPERTIESSERVICE_H

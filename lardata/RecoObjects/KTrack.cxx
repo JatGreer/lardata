@@ -10,6 +10,7 @@
 
 #include <cmath>
 #include <cstdlib>
+#include <ostream>
 #include "lardata/RecoObjects/KTrack.h"
 #include "cetlib_except/exception.h"
 
@@ -238,7 +239,7 @@ namespace trkf {
       dir[2] /= p;
     }
     out << "  Surface direction = " << (fDir == Surface::FORWARD ?
-					"FORWARD" : 
+					"FORWARD" :
 					( fDir == Surface::BACKWARD ?
 					  "BACKWARD" : "UNKNOWN" )) << "\n"
 	<< "  Pdg = " << fPdgCode << "\n"

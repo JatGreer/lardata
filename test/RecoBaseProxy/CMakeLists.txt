@@ -6,9 +6,10 @@ add_subdirectory(ProxyBase)
 simple_plugin(ProxyBaseTest "module"
   lardata_RecoBaseProxy
   lardataobj_RecoBase
+  art_Persistency_Provenance
   ${MF_MESSAGELOGGER}
-  
-  ${ROOT_GENVECTOR}
+
+  ROOT::GenVector
   USE_BOOST_UNIT
   )
 
@@ -27,22 +28,25 @@ cet_test(ProxyBase_test
 simple_plugin(TrackProxyTest "module"
   lardata_RecoBaseProxy
   lardataobj_RecoBase
+  art_Persistency_Provenance
   ${MF_MESSAGELOGGER}
-  
-  ${ROOT_GENVECTOR}
+
+  ROOT::GenVector
   USE_BOOST_UNIT
   )
 
 simple_plugin(TrackProxyHitMaker "module"
   lardataobj_RecoBase
+  art_Persistency_Provenance
   ${MF_MESSAGELOGGER}
-  
+
   )
 
 simple_plugin(TrackProxyTrackMaker "module"
   lardataobj_RecoBase
+  art_Persistency_Provenance
   ${MF_MESSAGELOGGER}
-  
+  ROOT::Core
   )
 
 cet_test(TrackProxy_test
@@ -59,9 +63,10 @@ cet_test(TrackProxy_test
 simple_plugin(ChargedSpacePointProxyTest "module"
   lardata_RecoBaseProxy
   lardataobj_RecoBase
+  art_Persistency_Provenance
   ${MF_MESSAGELOGGER}
-  
-  ${ROOT_GENVECTOR}
+
+  ROOT::GenVector
   USE_BOOST_UNIT
   )
 
@@ -69,7 +74,7 @@ simple_plugin(ChargedSpacePointProxyInputMaker "module"
   lardataobj_RecoBase
   lardata_ArtDataHelper
   ${MF_MESSAGELOGGER}
-  
+
   USE_BOOST_UNIT
   )
 
@@ -82,4 +87,3 @@ cet_test(ChargedSpacePointProxy_test
   )
 
 ###############################################################################
-

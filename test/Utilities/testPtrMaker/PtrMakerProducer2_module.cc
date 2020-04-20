@@ -10,12 +10,7 @@
 #include "art/Framework/Core/EDProducer.h"
 #include "art/Framework/Core/ModuleMacros.h"
 #include "art/Framework/Principal/Event.h"
-#include "art/Framework/Principal/Handle.h"
-#include "art/Framework/Principal/Run.h"
-#include "art/Framework/Principal/SubRun.h"
-#include "canvas/Utilities/InputTag.h"
 #include "fhiclcpp/ParameterSet.h"
-#include "messagefacility/MessageLogger/MessageLogger.h"
 #include "art/Persistency/Common/PtrMaker.h"
 #include <memory>
 
@@ -46,7 +41,7 @@ private:
 
 
 PtrMakerProducer2::PtrMakerProducer2(fhicl::ParameterSet const & p)
-: nvalues( p.get<int>("nvalues") )
+  : EDProducer{p}, nvalues( p.get<int>("nvalues") )
   {
     produces<intvector_t>();
     produces<intPtrvector_t>();
@@ -58,7 +53,7 @@ void PtrMakerProducer2::produce(art::Event & e)
   int value_ = e.id().event();
   std::unique_ptr<intvector_t> intvector(new intvector_t);
   auto intptrs = std::make_unique<intPtrvector_t>();
-  art::PtrMaker<int> make_intptr(e, *this);
+  art::PtrMaker<int> make_intptr(e);
 
   for( int i = 0; i != nvalues; ++i ) {
     intvector->push_back(value_ * i);

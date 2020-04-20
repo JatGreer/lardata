@@ -4,11 +4,11 @@
 ///
 /// \brief  Base class for Kalman filter planar surfaces.
 ///
-/// \author H. Greenlee 
+/// \author H. Greenlee
 ///
 /// This class acts as an intermediate layer between abstract surfaces
 /// (base class Surface), and concrete planar surfaces (like
-/// SurfYZPlane and SurfXYZPlane).  It does not include any data 
+/// SurfYZPlane and SurfXYZPlane).  It does not include any data
 /// members of its own.  However, it guarantees the existence of a
 /// local Cartesian coordinate system (u,v,w), in which this plane is
 /// located at w=0, and the track parameters are (u, v, du/dw, dv/dw,
@@ -20,7 +20,7 @@
 #ifndef SURFPLANE_H
 #define SURFPLANE_H
 
-#include <ostream>
+#include "lardata/RecoObjects/KalmanLinearAlgebra.h"
 #include "lardata/RecoObjects/Surface.h"
 
 namespace trkf {

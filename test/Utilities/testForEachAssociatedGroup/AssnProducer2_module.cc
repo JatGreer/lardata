@@ -11,11 +11,7 @@
 #include "art/Framework/Core/ModuleMacros.h"
 #include "art/Framework/Principal/Event.h"
 #include "art/Framework/Principal/Handle.h"
-#include "art/Framework/Principal/Run.h"
-#include "art/Framework/Principal/SubRun.h"
-#include "canvas/Utilities/InputTag.h"
 #include "fhiclcpp/ParameterSet.h"
-#include "messagefacility/MessageLogger/MessageLogger.h"
 #include "art/Persistency/Common/PtrMaker.h"
 
 namespace lartest {
@@ -47,10 +43,9 @@ std::string fInputLabel;
 
 
 AssnProducer2::AssnProducer2(fhicl::ParameterSet const & p)
- :  fInputLabel(p.get<std::string>("input_label"))
-// Initialize member data here.
+  : EDProducer{p}
+  , fInputLabel(p.get<std::string>("input_label"))
 {
-  // Call appropriate produces<>() functions here.
    produces<art::Assns<int, std::string>>();
 }
 
@@ -60,10 +55,10 @@ void AssnProducer2::produce(art::Event & e)
    e.getByLabel(fInputLabel, ih);
    art::Handle<std::vector<std::string>> sh;
    e.getByLabel(fInputLabel, sh);
-   
+
    art::PtrMaker<int> make_intptr(e, ih.id());
    art::PtrMaker<std::string> make_strptr(e, sh.id());
-   
+
    auto assns = std::make_unique<art::Assns<int, std::string>>();
    for (size_t i=0; i < 3; ++i) {
       auto p1 = make_intptr(i);

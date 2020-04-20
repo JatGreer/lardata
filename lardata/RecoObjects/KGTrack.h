@@ -4,7 +4,7 @@
 ///
 /// \brief  A collection of KHitTracks.
 ///
-/// \author H. Greenlee 
+/// \author H. Greenlee
 ///
 /// This class is a colleciton of KHitTracks.  In other words, it has
 /// full information every measurement, and every fit on every
@@ -12,7 +12,7 @@
 /// that it is possible to have.
 ///
 /// KHitTrack collection is stored as a map, indexed by path distance.
-/// This organization makes it easy to find the one or two nearest 
+/// This organization makes it easy to find the one or two nearest
 /// KHitTrack objects to any path distance.
 ///
 /// Note that by combining information from forward and backward fit
@@ -25,14 +25,18 @@
 #ifndef KGTRACK_H
 #define KGTRACK_H
 
+#include <iosfwd>
 #include <map>
+#include <vector>
 
-#include "canvas/Persistency/Common/Ptr.h"
 #include "canvas/Persistency/Common/PtrVector.h"
 
 #include "lardata/RecoObjects/KHitTrack.h"
-#include "lardataobj/RecoBase/Track.h"
-#include "lardataobj/RecoBase/Hit.h"
+
+namespace recob {
+  class Hit;
+  class Track;
+}
 
 namespace trkf {
 
