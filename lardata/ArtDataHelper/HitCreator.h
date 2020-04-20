@@ -183,7 +183,6 @@ namespace recob {
         short int            multiplicity,
         short int            local_index,
         float                goodness_of_fit,
-<<<<<<< HEAD
         int                  dof,
         float                summedADC1,
         float                summedADC2,
@@ -200,12 +199,6 @@ But default value of summedADC1-8 is zero so I hope leaving them in will be ok*/
        );
       
       
-=======
-        int                  dof
-        );
-
-
->>>>>>> develop
       /**
        * @brief Constructor: computes sum of ADC from wire.
        * @param wire a pointer to a `recob::Wire` (for channel, view, signal

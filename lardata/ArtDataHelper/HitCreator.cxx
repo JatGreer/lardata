@@ -90,7 +90,6 @@ namespace recob {
       local_index,
       goodness_of_fit,
       dof,
-<<<<<<< HEAD
       art::ServiceHandle<geo::Geometry>()->View(digits.Channel()),
       art::ServiceHandle<geo::Geometry>()->SignalType(digits.Channel()),
       wireID,
@@ -103,11 +102,6 @@ namespace recob {
       summedADC7,
       summedADC8,
       continues
-=======
-      art::ServiceHandle<geo::Geometry const>()->View(digits.Channel()),
-      art::ServiceHandle<geo::Geometry const>()->SignalType(digits.Channel()),
-      wireID
->>>>>>> develop
       )
   {} // HitCreator::HitCreator(RawDigit)
 
@@ -157,7 +151,6 @@ namespace recob {
       goodness_of_fit,
       dof,
       wire.View(),
-<<<<<<< HEAD
       art::ServiceHandle<geo::Geometry>()->SignalType(wire.Channel()),
       wireID,
       summedADC1,
@@ -169,10 +162,6 @@ namespace recob {
       summedADC7,
       summedADC8,
       continues
-=======
-      art::ServiceHandle<geo::Geometry const>()->SignalType(wire.Channel()),
-      wireID
->>>>>>> develop
       )
   {} // HitCreator::HitCreator(Wire)
 
