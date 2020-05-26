@@ -46,6 +46,12 @@ find_ups_product( postgresql  )
 find_ups_product( range )
 find_ups_product( cetbuildtools )
 find_ups_product( fftw )
+find_ups_product( nutools v1_00_00 )
+find_ups_product( nuevdb )
+find_ups_product( nug4 )
+find_ups_product( nugen )
+find_ups_product( genie )
+find_ups_product( nurandom )
 
 #  Find all the libraries needed by our dependent CMakeList.txt files
 # cet_find_library( NUSIMDATA_SIMULATIONBASE NAMES nusimdata_SimulationBase PATHS ENV NUSIMDATA_LIB NO_DEFAULT_PATH )
